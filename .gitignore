@@ -1,0 +1,26 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*~
+.idea/
+.vscode/
+*.code-workspace
+
+# Dependencies / env
+node_modules/
+.venv/
+venv/
+.env
+.env.*
+
+# Logs / caches
+*.log
+.cache/
+dist/
+build/
+
+# Local agent notes (optional)
+.learnings/
+.grok/
