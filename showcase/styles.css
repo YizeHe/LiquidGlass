@@ -841,8 +841,9 @@ body {
   display: block;
   padding: 5px;
   border-radius: 999px;
-  touch-action: none;
+  touch-action: pan-y;
   user-select: none;
+  /* allow vertical thumb overflow; clip is not used so top/bottom can peek */
   overflow: visible;
 }
 
@@ -851,11 +852,14 @@ body {
   z-index: 2;
   display: flex;
   gap: 2px;
+  /* options must receive clicks above the visual thumb */
+  pointer-events: auto;
 }
 
-/* Moving glass droplet — refraction lives here */
+/* Moving glass droplet — refraction only; more transparent than other glass */
+.segmented > .seg-thumb,
 .seg-thumb {
-  /* override `.lg-surface > * { position: relative }` */
+  /* override `.lg-surface > * { position: relative }` and shared dark tint */
   position: absolute !important;
   z-index: 1;
   top: 0;
@@ -865,27 +869,28 @@ body {
   margin: 0;
   padding: 0;
   border-radius: 999px;
-  pointer-events: none;
+  /* never steal clicks — options under/over handle selection */
+  pointer-events: none !important;
   will-change: transform, width, height, left, top;
-  /* More translucent so it reads as a magnifying lens over the track */
+  /* lighter / clearer than default .lg-surface — not a black slab */
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.16),
-    rgba(14, 14, 22, 0.12)
-  );
+    rgba(255, 255, 255, 0.14),
+    rgba(255, 255, 255, 0.05)
+  ) !important;
   box-shadow:
-    0 10px 28px rgba(0, 0, 0, 0.28),
-    0 0 0 1px rgba(255, 255, 255, 0.22),
-    inset 0 1px 1px rgba(255, 255, 255, 0.55),
-    inset 0 -6px 16px rgba(255, 255, 255, 0.08);
+    0 6px 18px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(255, 255, 255, 0.28),
+    inset 0 1px 1px rgba(255, 255, 255, 0.45),
+    inset 0 -4px 12px rgba(255, 255, 255, 0.06) !important;
 }
 
 .seg-thumb.lg-glare::after {
   background: radial-gradient(
     90px circle at var(--gx, 30%) var(--gy, 20%),
-    rgba(255, 255, 255, 0.34),
-    rgba(255, 255, 255, 0.06) 40%,
-    transparent 68%
+    rgba(255, 255, 255, 0.28),
+    rgba(255, 255, 255, 0.05) 42%,
+    transparent 70%
   );
 }
 
@@ -900,8 +905,9 @@ body {
   cursor: pointer;
   transition: color 0.18s var(--ease);
   position: relative;
-  z-index: 2;
+  z-index: 3;
   -webkit-tap-highlight-color: transparent;
+  pointer-events: auto;
 }
 
 .segment.is-active {

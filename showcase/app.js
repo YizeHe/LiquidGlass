@@ -219,9 +219,11 @@
 
   // ---------- Segmented: liquid droplet thumb ----------
   /**
-   * Glass droplet that slides between Day / Week / Month.
-   * Motion stretch (longer while traveling) + landing squash (flatter from inertia),
-   * resting slightly enlarged like a magnifying lens — spring physics akin to the float card.
+   * Glass droplet over Day / Week / Month.
+   * - Click an option → thumb springs to that slot
+   * - Drag horizontally → scrub + snap
+   * - Horizontal edges never leave the track pad; vertical has a slight overflow
+   * - Travel stretch + landing squash (card-like springs)
    */
   class SegmentDroplet {
     constructor(root) {
@@ -230,7 +232,8 @@
       this.segments = Array.from(root.querySelectorAll(".segment"));
       if (!this.thumb || !this.segments.length) return;
 
-      this.pad = 5;
+      this.pad = 5; // matches CSS padding — hard L/R bounds
+      this.vOverflow = 3; // px peek above/below segment (vertical only)
       this.x = 0;
       this.y = 0;
       this.w = 40;
@@ -243,11 +246,8 @@
       this.vy = 0;
       this.vw = 0;
       this.vh = 0;
-      this.stiffness = 0.16;
-      this.damping = 0.7;
-      // resting magnifier scale (enlarged droplet)
-      this.bulge = 1.14;
-      // impact residual: positive = flatter (squashed vertically)
+      this.stiffness = 0.17;
+      this.damping = 0.68;
       this.impact = 0;
       this.prevSpeed = 0;
       this.activeIndex = Math.max(
@@ -257,40 +257,48 @@
         })
       );
       this.dragging = false;
+      this._pressing = false;
+      this._moved = false;
       this.ready = false;
       this._glassReady = false;
 
       var self = this;
+
+      // Primary interaction: click a concrete option → slide thumb there
       this.segments.forEach(function (btn, i) {
-        btn.addEventListener("click", function () {
-          if (self.dragging) return;
+        btn.addEventListener("click", function (e) {
+          e.preventDefault();
+          if (self._moved) return; // finished a drag scrub; skip synthetic click
           self.select(i);
         });
       });
 
-      // Drag the track to scrub the droplet (click still handled by segment buttons)
+      // Optional horizontal scrub (does not block option clicks: no capture until drag)
       root.addEventListener("pointerdown", function (e) {
         if (e.button != null && e.button !== 0) return;
         self._downX = e.clientX;
         self._downY = e.clientY;
+        self._pointerId = e.pointerId;
         self._moved = false;
         self._pressing = true;
-        try {
-          root.setPointerCapture(e.pointerId);
-        } catch (_) {}
+        self.dragging = false;
       });
+
       root.addEventListener("pointermove", function (e) {
         if (!self._pressing) return;
-        if (
-          Math.abs(e.clientX - self._downX) > 5 ||
-          Math.abs(e.clientY - self._downY) > 5
-        ) {
-          self._moved = true;
+        var dx = e.clientX - self._downX;
+        var dy = e.clientY - self._downY;
+        if (!self.dragging && Math.abs(dx) > 6 && Math.abs(dx) > Math.abs(dy)) {
           self.dragging = true;
+          self._moved = true;
+          try {
+            root.setPointerCapture(e.pointerId);
+          } catch (_) {}
         }
         if (self.dragging) self.snapToPointer(e.clientX, true);
       });
-      root.addEventListener("pointerup", function (e) {
+
+      function endPress(e) {
         if (!self._pressing) return;
         var wasDragging = self.dragging;
         self._pressing = false;
@@ -298,21 +306,29 @@
         if (root.hasPointerCapture && root.hasPointerCapture(e.pointerId)) {
           root.releasePointerCapture(e.pointerId);
         }
-        if (wasDragging || self._moved) {
-          // Snap after scrub; skip if pure click (segment handler will select)
+        if (wasDragging) {
           self.snapToPointer(e.clientX, false);
+          // keep _moved true until next tick so click on option is ignored once
+          setTimeout(function () {
+            self._moved = false;
+          }, 0);
         }
-      });
-      root.addEventListener("pointercancel", function () {
+      }
+
+      root.addEventListener("pointerup", endPress);
+      root.addEventListener("pointercancel", function (e) {
         self._pressing = false;
         self.dragging = false;
+        self._moved = false;
+        if (root.hasPointerCapture && e && root.hasPointerCapture(e.pointerId)) {
+          root.releasePointerCapture(e.pointerId);
+        }
       });
 
       window.addEventListener("resize", function () {
         self.layout(true);
       });
 
-      // Wait a frame so layout/fonts settle
       requestAnimationFrame(function () {
         self.ensureGlass();
         self.layout(true);
@@ -323,23 +339,65 @@
 
     ensureGlass() {
       if (this._glassReady || !this.thumb) return;
-      applyGlass(this.thumb, parseOpts(this.thumb));
+      // Lighter optics on the thumb only (not other surfaces)
+      applyGlass(this.thumb, Object.assign({
+        scale: -100,
+        mapBlur: 10,
+        blur: 1.5,
+        chroma: 5,
+        border: 0.16,
+        saturate: 1.3,
+      }, parseOpts(this.thumb)));
       bindGlare(this.thumb);
       this._glassReady = true;
       refreshWhenReady(this.thumb);
     }
 
-    layout(instant) {
+    /** Inner track box (content area inside padding) — L/R hard limits */
+    trackBounds() {
+      var rw = this.root.clientWidth;
+      var rh = this.root.clientHeight;
+      var pad = this.pad;
+      return {
+        left: pad,
+        right: rw - pad,
+        top: pad,
+        bottom: rh - pad,
+        width: Math.max(0, rw - pad * 2),
+        height: Math.max(0, rh - pad * 2),
+      };
+    }
+
+    /** Target rect for segment index, clamped L/R to track; taller for vertical peek */
+    targetForIndex(index) {
       var rootRect = this.root.getBoundingClientRect();
-      var seg = this.segments[this.activeIndex];
-      if (!seg) return;
+      var seg = this.segments[index];
       var r = seg.getBoundingClientRect();
+      var track = this.trackBounds();
       var left = r.left - rootRect.left;
       var top = r.top - rootRect.top;
-      this.tx = left;
-      this.ty = top;
-      this.tw = r.width;
-      this.th = r.height;
+      var w = r.width;
+      var h = r.height;
+
+      // Horizontal: never wider than track, never past ends
+      if (w > track.width) w = track.width;
+      if (left < track.left) left = track.left;
+      if (left + w > track.right) left = track.right - w;
+
+      // Vertical: slight overflow above/below segment (not the outer base ends)
+      var vo = this.vOverflow;
+      var h2 = h + vo * 2;
+      var top2 = top - vo;
+
+      return { x: left, y: top2, w: w, h: h2 };
+    }
+
+    layout(instant) {
+      var t = this.targetForIndex(this.activeIndex);
+      this.tx = t.x;
+      this.ty = t.y;
+      this.tw = t.w;
+      this.th = t.h;
       if (instant || !this.ready) {
         this.x = this.tx;
         this.y = this.ty;
@@ -347,13 +405,18 @@
         this.h = this.th;
         this.vx = this.vy = this.vw = this.vh = 0;
         this.impact = 0;
-        this.render();
+        this.render(0);
         if (this._glassReady) refreshWhenReady(this.thumb);
       }
     }
 
     select(index) {
       if (index < 0 || index >= this.segments.length) return;
+      if (index === this.activeIndex && this.ready) {
+        // re-nudge target in case of layout shift
+        this.layout(false);
+        return;
+      }
       this.activeIndex = index;
       this.segments.forEach(function (s, i) {
         var on = i === index;
@@ -383,17 +446,11 @@
     snapToPointer(clientX, freeDrag) {
       var i = this.indexFromX(clientX);
       if (freeDrag) {
-        // While dragging, follow the pointer more loosely within track
-        var rootRect = this.root.getBoundingClientRect();
-        var seg = this.segments[i];
-        var r = seg.getBoundingClientRect();
-        var left = r.left - rootRect.left;
-        var top = r.top - rootRect.top;
-        // blend toward nearest segment under finger
-        this.tx = left;
-        this.ty = top;
-        this.tw = r.width;
-        this.th = r.height;
+        var t = this.targetForIndex(i);
+        this.tx = t.x;
+        this.ty = t.y;
+        this.tw = t.w;
+        this.th = t.h;
         if (i !== this.activeIndex) {
           this.activeIndex = i;
           this.segments.forEach(function (s, idx) {
@@ -404,6 +461,20 @@
         }
       } else {
         this.select(i);
+      }
+    }
+
+    /** Clamp animated box so left/right never leave the track pad */
+    clampHorizontal() {
+      var track = this.trackBounds();
+      if (this.w > track.width) this.w = track.width;
+      if (this.x < track.left) {
+        this.x = track.left;
+        if (this.vx < 0) this.vx = 0;
+      }
+      if (this.x + this.w > track.right) {
+        this.x = track.right - this.w;
+        if (this.vx > 0) this.vx = 0;
       }
     }
 
@@ -420,11 +491,11 @@
       this.y += this.vy;
       this.w += this.vw;
       this.h += this.vh;
+      this.clampHorizontal();
 
       var speed = Math.hypot(this.vx, this.vy) + Math.abs(this.vw) * 0.35;
-      // Landing impact: was moving, now nearly settled → flatten briefly
       if (this.prevSpeed > 1.8 && speed < 0.55 && !this.dragging) {
-        this.impact = Math.min(0.16, 0.05 + this.prevSpeed * 0.035);
+        this.impact = Math.min(0.14, 0.04 + this.prevSpeed * 0.03);
       }
       this.impact *= 0.88;
       if (this.impact < 0.001) this.impact = 0;
@@ -435,31 +506,39 @@
     }
 
     render(speed) {
-      if (speed == null) {
-        speed = Math.hypot(this.vx, this.vy);
-      }
-      // Travel: stretch longer along motion (sides compressed)
-      var travel = Math.min(speed / 9, 0.18);
-      // Landing: flatten (shorter, a bit taller feel via scaleY dip from impact)
-      var flat = this.impact;
-      var scaleX = this.bulge * (1 + travel - flat * 0.85);
-      var scaleY = this.bulge * (1 - travel * 0.55 - flat * 0.35);
-      // Keep a readable minimum
-      scaleX = Math.max(0.88, scaleX);
-      scaleY = Math.max(0.82, scaleY);
+      if (speed == null) speed = Math.hypot(this.vx, this.vy);
 
-      var cx = this.x + this.w / 2;
-      var cy = this.y + this.h / 2;
-      // Position via left/top/size, squash via transform around center
-      this.thumb.style.left = this.x + "px";
+      // Travel: slightly longer along X (then re-clamp so ends stay in base)
+      var travel = Math.min(speed / 9, 0.14);
+      var flat = this.impact;
+      var stretchX = 1 + travel - flat * 0.7;
+      var stretchY = 1 - travel * 0.45 - flat * 0.4;
+      stretchX = Math.max(0.92, Math.min(1.12, stretchX));
+      stretchY = Math.max(0.88, Math.min(1.08, stretchY));
+
+      var w = Math.max(1, this.w);
+      var h = Math.max(1, this.h);
+      var cx = this.x + w / 2;
+      var drawnW = w * stretchX;
+      var track = this.trackBounds();
+      // Keep visual left/right inside the base after stretch
+      if (drawnW > track.width) {
+        stretchX = track.width / w;
+        drawnW = track.width;
+      }
+      var left = cx - drawnW / 2;
+      if (left < track.left) left = track.left;
+      if (left + drawnW > track.right) left = track.right - drawnW;
+
+      // Vertical: allow overflow (no clamp to pad)
+      this.thumb.style.left = left + "px";
       this.thumb.style.top = this.y + "px";
-      this.thumb.style.width = Math.max(1, this.w) + "px";
-      this.thumb.style.height = Math.max(1, this.h) + "px";
-      this.thumb.style.transform =
-        "translate(0,0) scale(" + scaleX + ", " + scaleY + ")";
+      this.thumb.style.width = drawnW + "px";
+      this.thumb.style.height = h + "px";
+      // Only Y scale for droplet squash/stretch feel without expanding past L/R
+      this.thumb.style.transform = "scaleY(" + stretchY + ")";
       this.thumb.style.transformOrigin = "50% 50%";
 
-      // Soft glare follows motion direction
       var gx = 50 + Math.max(-28, Math.min(28, this.vx * 6));
       var gy = 30 + Math.max(-18, Math.min(18, this.vy * 4));
       this.thumb.style.setProperty("--gx", gx.toFixed(1) + "%");
