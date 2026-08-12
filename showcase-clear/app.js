@@ -441,8 +441,9 @@
       this.vy = 0;
       this.vw = 0;
       this.vh = 0;
-      this.stiffness = 0.17;
-      this.damping = 0.68;
+      /* Match float-card spring feel (was 0.17/0.68 — too snappy) */
+      this.stiffness = 0.1;
+      this.damping = 0.78;
       this.impact = 0;
       this.prevSpeed = 0;
       this.activeIndex = Math.max(
@@ -695,8 +696,8 @@
     render(speed) {
       if (speed == null) speed = Math.hypot(this.vx, this.vy);
 
-      // Travel: slightly longer along X (then re-clamp so ends stay in base)
-      var travel = Math.min(speed / 9, 0.14);
+      // Travel stretch — softer divisor so motion doesn’t feel hyper-fast
+      var travel = Math.min(speed / 14, 0.12);
       var flat = this.impact;
       var stretchX = 1 + travel - flat * 0.7;
       var stretchY = 1 - travel * 0.45 - flat * 0.4;
