@@ -28,8 +28,9 @@
   var MODE_PRESETS = {
     clear: {
       blur: 0,
-      border: 0.17,
-      mapBlur: 15,
+      // Edge band ~½ of previous clear preset (border + mapBlur define rim width)
+      border: 0.085,
+      mapBlur: 7.5,
       saturate: 1.12,
       chroma: 5,
       fallbackBlur: 2,

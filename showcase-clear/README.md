@@ -12,7 +12,7 @@
 Optics still use `../liquid-glass/liquid-glass.js`. Clarity is controlled by:
 
 - `blur: 0` (clear) vs `blur: 10` (frosted)
-- `border: ~0.17` wide edge-only displacement (clear) vs `~0.07` (frosted)
+- `border: ~0.085` + `mapBlur: ~7.5` for a thin rim warp in clear (≈½ the earlier clear band) vs `border: ~0.07` / `mapBlur: ~11` frosted
 - Lighter CSS tint in clear mode so the fill does not black out the middle
 
 ## Run
