@@ -770,71 +770,29 @@ body.bg-scene-light .mode-option.is-active {
 }
 
 /*
- * Restore original translucent glass chips (Featured / Explore / Save, etc.).
- * White semi-transparent — NOT solid black, NOT milky gray, NOT opaque white.
+ * Button fills: do NOT paint opaque white over .lg-surface.
+ * "Save changes" transparency comes from body.mode-clear .lg-surface (very light tint).
+ * Extra .btn-primary / card overrides were making Explore/Save/Featured opaque.
  */
 .btn-primary {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.28),
-    rgba(255, 255, 255, 0.14)
-  );
+  /* no solid fill — glass material is entirely .lg-surface */
+  background: transparent;
 }
 
 .btn-secondary {
-  /* inherits .lg-surface glass dressing */
+  background: transparent;
 }
 
 .btn-ghost {
-  background: linear-gradient(
-    180deg,
-    rgba(14, 14, 22, 0.08),
-    rgba(14, 14, 22, 0.16)
-  );
-  box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.2),
-    inset 0 1px 1px rgba(255, 255, 255, 0.35),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  background: transparent;
+  box-shadow: none;
 }
 
-/* Nested card controls: keep the same clear glass as early demo (not frosted dark slab) */
-.card .btn.lg-surface,
-.card .badge.lg-surface,
-.btn.btn-sm.lg-surface,
-.badge.lg-surface {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.28),
-    rgba(255, 255, 255, 0.12)
-  ) !important;
-  box-shadow:
-    0 10px 28px rgba(0, 0, 0, 0.22),
-    inset 0 1px 1px rgba(255, 255, 255, 0.55),
-    inset 0 -6px 14px rgba(255, 255, 255, 0.06),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.22) !important;
-}
-
-.card .btn.btn-ghost.lg-surface,
-.btn.btn-ghost.btn-sm.lg-surface {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.14),
-    rgba(255, 255, 255, 0.06)
-  ) !important;
-  box-shadow:
-    0 8px 22px rgba(0, 0, 0, 0.16),
-    inset 0 1px 1px rgba(255, 255, 255, 0.4),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.16) !important;
-}
-
-/* Light scene: only flip type color — keep translucent glass fill */
-body.bg-scene-light .card .btn.lg-surface,
-body.bg-scene-light .card .badge.lg-surface,
-body.bg-scene-light .btn.btn-sm.lg-surface,
-body.bg-scene-light .badge.lg-surface,
-body.bg-scene-light .btn.btn-primary,
-body.bg-scene-light .btn.btn-ghost,
-body.bg-scene-light .btn.btn-secondary {
+/* Light scene: type only — never raise fill opacity */
+body.bg-scene-light .btn,
+body.bg-scene-light .badge,
+body.bg-scene-light .icon-btn,
+body.bg-scene-light .chip {
   color: #14141c;
 }
 
@@ -1012,11 +970,11 @@ body.bg-scene-light .btn.btn-secondary {
 }
 
 .chip.is-active {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.28),
-    rgba(255, 255, 255, 0.14)
-  );
+  /* keep transparent glass; slightly stronger rim only */
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.2),
+    inset 0 1px 1px rgba(255, 255, 255, 0.6),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.28);
 }
 
 /* ---- Form fields ---- */
