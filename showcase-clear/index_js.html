@@ -202,20 +202,21 @@ body.bg-scene-photo .orb {
   opacity: 0;
 }
 
-/* ---- Scene: light + orbs → black text ---- */
+/*
+ * Scene skins — restored from e18775b (5 commits ago) glass fill logic.
+ * CRITICAL: never raise .lg-surface background opacity in light mode.
+ * Nested Explore/Save sample the CARD via backdrop-filter; a milky card
+ * makes them look opaque even with “transparent” button CSS.
+ */
+/* ---- Scene: light + orbs ---- */
 body.bg-scene-light {
   --bg: #eef1f6;
   --ink: #14141c;
-  --ink-dim: rgba(20, 20, 28, 0.68);
-  --ink-mute: rgba(20, 20, 28, 0.48);
+  --ink-dim: rgba(20, 20, 28, 0.62);
+  --ink-mute: rgba(20, 20, 28, 0.45);
+  /* float-card solid CTA only (not glass chips) */
   --cta-bg: #14141c;
   --cta-fg: #f5f5f7;
-  --line-soft: rgba(20, 20, 28, 0.16);
-  --field-border: rgba(20, 20, 28, 0.18);
-  --field-bg: rgba(255, 255, 255, 0.45);
-  --placeholder: rgba(20, 20, 28, 0.4);
-  --on-glass-muted: rgba(20, 20, 28, 0.58);
-  --on-glass-active: #14141c;
   color: var(--ink);
 }
 body.bg-scene-light .bg-solid {
@@ -232,103 +233,57 @@ body.bg-scene-light .bg-photo,
 body.bg-scene-light .bg-scrim {
   opacity: 0;
 }
-/* Page chrome + glass content: black text on light */
-body.bg-scene-light .lg-surface,
-body.bg-scene-light .float-card,
-body.bg-scene-light .navbar,
-body.bg-scene-light .btn,
-body.bg-scene-light .icon-btn,
-body.bg-scene-light .input,
-body.bg-scene-light .search-input,
-body.bg-scene-light .dropdown-item,
-body.bg-scene-light .chip,
-body.bg-scene-light .tab,
-body.bg-scene-light .segment,
-body.bg-scene-light .switch-title,
-body.bg-scene-light .slider-meta,
-body.bg-scene-light .toast,
-body.bg-scene-light .modal {
-  color: var(--ink);
-}
+/* Type only — same glass fill as photo/dark (mode-clear ~3–10% white) */
 body.bg-scene-light .hero-kicker,
 body.bg-scene-light .hero h1,
-body.bg-scene-light .page-foot {
-  color: rgba(20, 20, 28, 0.9);
+body.bg-scene-light .hero-sub,
+body.bg-scene-light .mode-status,
+body.bg-scene-light .panel-title,
+body.bg-scene-light .page-foot,
+body.bg-scene-light .nav-brand,
+body.bg-scene-light .nav-links a,
+body.bg-scene-light .card-body,
+body.bg-scene-light .field-label,
+body.bg-scene-light .switch-title,
+body.bg-scene-light .switch-desc,
+body.bg-scene-light .slider-meta,
+body.bg-scene-light .progress-label,
+body.bg-scene-light .seg-hint {
+  color: rgba(20, 20, 28, 0.88);
   text-shadow: 0 1px 12px rgba(255, 255, 255, 0.55);
 }
 body.bg-scene-light .hero-sub,
 body.bg-scene-light .mode-status,
 body.bg-scene-light .panel-title,
 body.bg-scene-light .card-body,
-body.bg-scene-light .float-card-sub,
-body.bg-scene-light .float-card-switch,
 body.bg-scene-light .switch-desc,
 body.bg-scene-light .field-label,
 body.bg-scene-light .progress-label,
-body.bg-scene-light .seg-hint,
-body.bg-scene-light .modal-body,
-body.bg-scene-light .tab-panel p {
-  color: var(--ink-dim);
-  text-shadow: none;
+body.bg-scene-light .seg-hint {
+  color: rgba(20, 20, 28, 0.62);
 }
-body.bg-scene-light .nav-links a,
+/* Black type on glass; DO NOT touch background / box-shadow */
+body.bg-scene-light .lg-surface,
+body.bg-scene-light .btn,
+body.bg-scene-light .icon-btn,
+body.bg-scene-light .badge,
+body.bg-scene-light .chip,
+body.bg-scene-light .input,
+body.bg-scene-light .search-input,
 body.bg-scene-light .tab,
-body.bg-scene-light .segment {
-  color: var(--on-glass-muted);
-}
-body.bg-scene-light .nav-links a:hover,
-body.bg-scene-light .tab.is-active,
-body.bg-scene-light .segment.is-active,
-body.bg-scene-light .tab:hover,
-body.bg-scene-light .segment:hover {
-  color: var(--on-glass-active);
-}
-body.bg-scene-light .tab.is-active {
-  background: rgba(20, 20, 28, 0.08);
-  box-shadow: inset 0 0 0 1px rgba(20, 20, 28, 0.1);
-}
-body.bg-scene-light .input::placeholder,
-body.bg-scene-light .search-input::placeholder,
-body.bg-scene-light .float-card-form input::placeholder {
-  color: var(--placeholder);
-}
-body.bg-scene-light .float-card h2 {
-  text-shadow: none;
-  color: var(--ink);
-}
-body.bg-scene-light .float-card-grip {
-  background: rgba(20, 20, 28, 0.25);
-}
-body.bg-scene-light .float-card-divider {
-  background: linear-gradient(90deg, transparent, var(--line-soft), transparent);
-}
-body.bg-scene-light .float-card-form input {
-  color: var(--ink);
-  border-color: var(--field-border);
-  background: var(--field-bg);
-}
-body.bg-scene-light .nav-brand {
-  color: var(--ink);
+body.bg-scene-light .segment,
+body.bg-scene-light .dropdown-item,
+body.bg-scene-light .float-card,
+body.bg-scene-light .modal {
+  color: #14141c;
 }
 body.bg-scene-light .nav-cta {
   background: var(--cta-bg);
   color: var(--cta-fg);
 }
-/*
- * Clear glass on light: denser fill ONLY on large panels — not nested controls.
- * Applying milky white to every .lg-surface turned buttons / thumbs gray.
- */
-body.bg-scene-light.mode-clear .lg-surface:not(.btn):not(.icon-btn):not(.chip):not(.badge):not(.seg-thumb):not(.slider-track-shell):not(.switch):not(.input):not(.search):not(.progress-wrap) {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.42),
-    rgba(255, 255, 255, 0.28)
-  );
-  box-shadow:
-    0 14px 40px rgba(0, 0, 0, 0.1),
-    inset 0 1px 1px rgba(255, 255, 255, 0.7),
-    inset 0 -6px 16px rgba(255, 255, 255, 0.2),
-    inset 0 0 0 1px rgba(20, 20, 28, 0.1);
+body.bg-scene-light .nav-links a:hover {
+  color: #14141c;
+  background: rgba(20, 20, 28, 0.06);
 }
 
 /* ---- Scene: dark + orbs → white text ---- */
@@ -336,15 +291,8 @@ body.bg-scene-dark {
   --bg: #0a0a14;
   --ink: #f5f5f7;
   --ink-dim: rgba(245, 245, 247, 0.65);
-  --ink-mute: rgba(245, 245, 247, 0.42);
   --cta-bg: #f5f5f7;
   --cta-fg: #0a0a12;
-  --line-soft: rgba(255, 255, 255, 0.22);
-  --field-border: rgba(255, 255, 255, 0.18);
-  --field-bg: rgba(255, 255, 255, 0.09);
-  --placeholder: rgba(245, 245, 247, 0.45);
-  --on-glass-muted: rgba(255, 255, 255, 0.62);
-  --on-glass-active: #ffffff;
   color: var(--ink);
 }
 body.bg-scene-dark .bg-solid {
@@ -380,7 +328,7 @@ body.bg-scene-dark .orb-pink .orb-core {
     inset 18px 22px 40px rgba(255, 255, 255, 0.3);
 }
 
-/* Photo scene keeps light text (dark photo + scrim) */
+/* Photo scene keeps light text */
 body.bg-scene-photo {
   --ink: #f5f5f7;
   --ink-dim: rgba(245, 245, 247, 0.65);
@@ -769,31 +717,29 @@ body.bg-scene-light .mode-option.is-active {
   font-size: 13px;
 }
 
-/*
- * Button fills: do NOT paint opaque white over .lg-surface.
- * "Save changes" transparency comes from body.mode-clear .lg-surface (very light tint).
- * Extra .btn-primary / card overrides were making Explore/Save/Featured opaque.
- */
+/* Same as e18775b / original showcase — light white wash; mode-clear .lg-surface wins when both apply */
 .btn-primary {
-  /* no solid fill — glass material is entirely .lg-surface */
-  background: transparent;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.28),
+    rgba(255, 255, 255, 0.14)
+  );
 }
 
 .btn-secondary {
-  background: transparent;
+  /* inherits lg-surface when combined */
 }
 
 .btn-ghost {
-  background: transparent;
-  box-shadow: none;
-}
-
-/* Light scene: type only — never raise fill opacity */
-body.bg-scene-light .btn,
-body.bg-scene-light .badge,
-body.bg-scene-light .icon-btn,
-body.bg-scene-light .chip {
-  color: #14141c;
+  background: linear-gradient(
+    180deg,
+    rgba(14, 14, 22, 0.08),
+    rgba(14, 14, 22, 0.16)
+  );
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.2),
+    inset 0 1px 1px rgba(255, 255, 255, 0.35),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 /* ---- Icon button ---- */
@@ -970,11 +916,11 @@ body.bg-scene-light .chip {
 }
 
 .chip.is-active {
-  /* keep transparent glass; slightly stronger rim only */
-  box-shadow:
-    0 10px 28px rgba(0, 0, 0, 0.2),
-    inset 0 1px 1px rgba(255, 255, 255, 0.6),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.28),
+    rgba(255, 255, 255, 0.14)
+  );
 }
 
 /* ---- Form fields ---- */
@@ -1251,43 +1197,15 @@ body.bg-scene-light .chip {
   border-radius: 999px;
 }
 
-/* Keep track shell bright (not inherited milky/gray panel) */
-.slider-track-shell.lg-surface {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.28),
-    rgba(255, 255, 255, 0.12)
-  ) !important;
-  box-shadow:
-    0 10px 28px rgba(0, 0, 0, 0.18),
-    inset 0 1px 1px rgba(255, 255, 255, 0.55),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.28) !important;
-}
-
-body.bg-scene-light .slider-track-shell.lg-surface {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.92),
-    rgba(255, 255, 255, 0.72)
-  ) !important;
-  box-shadow:
-    0 8px 20px rgba(0, 0, 0, 0.08),
-    inset 0 0 0 1px rgba(20, 20, 28, 0.1) !important;
-}
-
 .slider {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
   height: 6px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.18);
   outline: none;
   cursor: pointer;
-}
-
-body.bg-scene-light .slider {
-  background: rgba(20, 20, 28, 0.14);
 }
 
 .slider::-webkit-slider-thumb {
@@ -1296,20 +1214,11 @@ body.bg-scene-light .slider {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: #ffffff;
-  box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.35),
-    0 0 0 2px rgba(255, 255, 255, 0.5);
+  background: #fff;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
   border: none;
   cursor: grab;
   transition: transform 0.12s ease;
-}
-
-body.bg-scene-light .slider::-webkit-slider-thumb {
-  background: #14141c;
-  box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.25),
-    0 0 0 2px rgba(255, 255, 255, 0.9);
 }
 
 .slider::-webkit-slider-thumb:hover {
@@ -1324,26 +1233,16 @@ body.bg-scene-light .slider::-webkit-slider-thumb {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: #ffffff;
-  box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.35),
-    0 0 0 2px rgba(255, 255, 255, 0.5);
+  background: #fff;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
   border: none;
   cursor: grab;
-}
-
-body.bg-scene-light .slider::-moz-range-thumb {
-  background: #14141c;
 }
 
 .slider::-moz-range-track {
   height: 6px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.28);
-}
-
-body.bg-scene-light .slider::-moz-range-track {
-  background: rgba(20, 20, 28, 0.14);
+  background: rgba(255, 255, 255, 0.18);
 }
 
 /* ---- Segmented (liquid droplet thumb) ---- */
@@ -1367,10 +1266,9 @@ body.bg-scene-light .slider::-moz-range-track {
   pointer-events: auto;
 }
 
-/* Moving glass droplet — bright lens, not gray slab */
+/* Segment droplet — same low-opacity glass as e18775b (not milky white) */
 .segmented > .seg-thumb,
 .seg-thumb {
-  /* override `.lg-surface > * { position: relative }` and shared dark tint */
   position: absolute !important;
   z-index: 1;
   top: 0;
@@ -1380,46 +1278,31 @@ body.bg-scene-light .slider::-moz-range-track {
   margin: 0;
   padding: 0;
   border-radius: 999px;
-  /* never steal clicks — options under/over handle selection */
   pointer-events: none !important;
   will-change: transform, width, height, left, top;
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.52),
-    rgba(255, 255, 255, 0.22)
+    rgba(255, 255, 255, 0.12),
+    rgba(255, 255, 255, 0.04)
   ) !important;
   box-shadow:
-    0 8px 22px rgba(0, 0, 0, 0.18),
-    0 0 0 1px rgba(255, 255, 255, 0.45),
-    inset 0 1px 1px rgba(255, 255, 255, 0.75),
-    inset 0 -5px 14px rgba(255, 255, 255, 0.12) !important;
+    0 6px 18px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.28),
+    inset 0 1px 1px rgba(255, 255, 255, 0.45),
+    inset 0 -4px 12px rgba(255, 255, 255, 0.06) !important;
 }
 
 body.mode-frosted .seg-thumb {
-  /* still luminous — avoid dark gray frosted fill */
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.42),
-    rgba(255, 255, 255, 0.2)
+    rgba(255, 255, 255, 0.18),
+    rgba(14, 14, 22, 0.14)
   ) !important;
   box-shadow:
     0 8px 22px rgba(0, 0, 0, 0.22),
-    0 0 0 1px rgba(255, 255, 255, 0.35),
-    inset 0 1px 1px rgba(255, 255, 255, 0.65),
-    inset 0 -4px 12px rgba(255, 255, 255, 0.1) !important;
-}
-
-body.bg-scene-light .seg-thumb {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.98),
-    rgba(255, 255, 255, 0.82)
-  ) !important;
-  box-shadow:
-    0 8px 20px rgba(0, 0, 0, 0.12),
-    0 0 0 1px rgba(20, 20, 28, 0.12),
-    inset 0 1px 1px rgba(255, 255, 255, 1),
-    inset 0 -4px 12px rgba(255, 255, 255, 0.4) !important;
+    0 0 0 1px rgba(255, 255, 255, 0.2),
+    inset 0 1px 1px rgba(255, 255, 255, 0.45),
+    inset 0 -4px 12px rgba(255, 255, 255, 0.06) !important;
 }
 
 .seg-thumb.lg-glare::after {

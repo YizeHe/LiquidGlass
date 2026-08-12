@@ -15,15 +15,6 @@
   --ease: cubic-bezier(0.25, 0.8, 0.25, 1);
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
     "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  /* Scene-adaptive UI tokens (light → dark type; dark/photo → light type) */
-  --cta-bg: #f5f5f7;
-  --cta-fg: #0a0a12;
-  --line-soft: rgba(255, 255, 255, 0.22);
-  --field-border: rgba(255, 255, 255, 0.18);
-  --field-bg: rgba(255, 255, 255, 0.09);
-  --placeholder: rgba(245, 245, 247, 0.45);
-  --on-glass-muted: rgba(255, 255, 255, 0.62);
-  --on-glass-active: #ffffff;
 }
 
 *,
@@ -194,21 +185,11 @@ body.bg-scene-photo .orb {
   opacity: 0;
 }
 
-/*
- * Scene skins — restored from e18775b (5 commits ago) glass fill logic.
- * CRITICAL: never raise .lg-surface background opacity in light mode.
- * Nested Explore/Save sample the CARD via backdrop-filter; a milky card
- * makes them look opaque even with “transparent” button CSS.
- */
 /* ---- Scene: light + orbs ---- */
 body.bg-scene-light {
   --bg: #eef1f6;
   --ink: #14141c;
   --ink-dim: rgba(20, 20, 28, 0.62);
-  --ink-mute: rgba(20, 20, 28, 0.45);
-  /* float-card solid CTA only (not glass chips) */
-  --cta-bg: #14141c;
-  --cta-fg: #f5f5f7;
   color: var(--ink);
 }
 body.bg-scene-light .bg-solid {
@@ -225,68 +206,25 @@ body.bg-scene-light .bg-photo,
 body.bg-scene-light .bg-scrim {
   opacity: 0;
 }
-/* Type only — same glass fill as photo/dark (mode-clear ~3–10% white) */
 body.bg-scene-light .hero-kicker,
 body.bg-scene-light .hero h1,
 body.bg-scene-light .hero-sub,
 body.bg-scene-light .mode-status,
 body.bg-scene-light .panel-title,
-body.bg-scene-light .page-foot,
-body.bg-scene-light .nav-brand,
-body.bg-scene-light .nav-links a,
-body.bg-scene-light .card-body,
-body.bg-scene-light .field-label,
-body.bg-scene-light .switch-title,
-body.bg-scene-light .switch-desc,
-body.bg-scene-light .slider-meta,
-body.bg-scene-light .progress-label,
-body.bg-scene-light .seg-hint {
+body.bg-scene-light .page-foot {
   color: rgba(20, 20, 28, 0.88);
-  text-shadow: 0 1px 12px rgba(255, 255, 255, 0.55);
+  text-shadow: 0 1px 12px rgba(255, 255, 255, 0.6);
 }
 body.bg-scene-light .hero-sub,
 body.bg-scene-light .mode-status,
-body.bg-scene-light .panel-title,
-body.bg-scene-light .card-body,
-body.bg-scene-light .switch-desc,
-body.bg-scene-light .field-label,
-body.bg-scene-light .progress-label,
-body.bg-scene-light .seg-hint {
+body.bg-scene-light .panel-title {
   color: rgba(20, 20, 28, 0.62);
 }
-/* Black type on glass; DO NOT touch background / box-shadow */
-body.bg-scene-light .lg-surface,
-body.bg-scene-light .btn,
-body.bg-scene-light .icon-btn,
-body.bg-scene-light .badge,
-body.bg-scene-light .chip,
-body.bg-scene-light .input,
-body.bg-scene-light .search-input,
-body.bg-scene-light .tab,
-body.bg-scene-light .segment,
-body.bg-scene-light .dropdown-item,
-body.bg-scene-light .float-card,
-body.bg-scene-light .modal {
-  color: #14141c;
-}
-body.bg-scene-light .nav-cta {
-  background: var(--cta-bg);
-  color: var(--cta-fg);
-}
-body.bg-scene-light .nav-links a:hover {
-  color: #14141c;
-  background: rgba(20, 20, 28, 0.06);
+body.bg-scene-light .lg-surface {
+  color: #f5f5f7;
 }
 
-/* ---- Scene: dark + orbs → white text ---- */
-body.bg-scene-dark {
-  --bg: #0a0a14;
-  --ink: #f5f5f7;
-  --ink-dim: rgba(245, 245, 247, 0.65);
-  --cta-bg: #f5f5f7;
-  --cta-fg: #0a0a12;
-  color: var(--ink);
-}
+/* ---- Scene: dark + orbs ---- */
 body.bg-scene-dark .bg-solid {
   opacity: 1;
   background:
@@ -301,10 +239,6 @@ body.bg-scene-dark .bg-photo,
 body.bg-scene-dark .bg-scrim {
   opacity: 0;
 }
-body.bg-scene-dark .lg-surface,
-body.bg-scene-dark .float-card {
-  color: var(--ink);
-}
 body.bg-scene-dark .orb-blue .orb-core {
   box-shadow:
     0 48px 140px rgba(30, 100, 255, 0.55),
@@ -318,15 +252,6 @@ body.bg-scene-dark .orb-pink .orb-core {
     0 0 100px rgba(255, 100, 170, 0.35),
     inset -28px -36px 60px rgba(80, 10, 40, 0.4),
     inset 18px 22px 40px rgba(255, 255, 255, 0.3);
-}
-
-/* Photo scene keeps light text */
-body.bg-scene-photo {
-  --ink: #f5f5f7;
-  --ink-dim: rgba(245, 245, 247, 0.65);
-  --cta-bg: #f5f5f7;
-  --cta-fg: #0a0a12;
-  color: var(--ink);
 }
 
 @media (max-width: 720px) {
@@ -709,7 +634,6 @@ body.bg-scene-light .mode-option.is-active {
   font-size: 13px;
 }
 
-/* Same as e18775b / original showcase — light white wash; mode-clear .lg-surface wins when both apply */
 .btn-primary {
   background: linear-gradient(
     180deg,
@@ -1258,9 +1182,10 @@ body.bg-scene-light .mode-option.is-active {
   pointer-events: auto;
 }
 
-/* Segment droplet — same low-opacity glass as e18775b (not milky white) */
+/* Moving glass droplet — refraction only; more transparent than other glass */
 .segmented > .seg-thumb,
 .seg-thumb {
+  /* override `.lg-surface > * { position: relative }` and shared dark tint */
   position: absolute !important;
   z-index: 1;
   top: 0;
@@ -1270,8 +1195,10 @@ body.bg-scene-light .mode-option.is-active {
   margin: 0;
   padding: 0;
   border-radius: 999px;
+  /* never steal clicks — options under/over handle selection */
   pointer-events: none !important;
   will-change: transform, width, height, left, top;
+  /* thumb follows mode; clear = very open glass */
   background: linear-gradient(
     180deg,
     rgba(255, 255, 255, 0.12),
@@ -1582,8 +1509,7 @@ body.mode-frosted .seg-thumb {
   cursor: grab;
   touch-action: none;
   will-change: transform;
-  /* Follow scene: light bg → black type; dark/photo → white type */
-  color: var(--ink);
+  /* rest above page content; transform applied by GlassCard */
 }
 
 .float-card:active {
@@ -1628,8 +1554,8 @@ body.mode-frosted .seg-thumb {
   width: 100%;
   padding: 13px 16px;
   border-radius: 14px;
-  border: 1px solid var(--field-border);
-  background: var(--field-bg);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.09);
   color: var(--ink);
   font: 500 15px/1.2 var(--font);
   outline: none;
@@ -1638,13 +1564,12 @@ body.mode-frosted .seg-thumb {
 }
 
 .float-card-form input::placeholder {
-  color: var(--placeholder);
+  color: rgba(245, 245, 247, 0.45);
 }
 
 .float-card-form input:focus {
-  border-color: var(--ink-dim);
-  background: var(--field-bg);
-  filter: brightness(1.05);
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.13);
 }
 
 .float-card-form button {
@@ -1654,17 +1579,15 @@ body.mode-frosted .seg-thumb {
   border: none;
   border-radius: 14px;
   cursor: pointer;
-  /* Light scene: dark btn + light text; dark/photo: light btn + dark text */
-  background: var(--cta-bg);
-  color: var(--cta-fg);
+  background: var(--ink);
+  color: #0a0a12;
   font: 600 15px/1.2 var(--font);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .float-card-form button:hover {
   transform: scale(1.02);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
-  filter: brightness(1.06);
+  box-shadow: 0 6px 24px rgba(255, 255, 255, 0.22);
 }
 
 .float-card-divider {
