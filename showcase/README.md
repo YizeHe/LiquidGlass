@@ -38,7 +38,8 @@ http://localhost:3000/showcase/
 | 10 | **Modal** | Dialog + backdrop; open from Buttons area / nav |
 | 11 | **Toast** | Timed glass notification |
 | 12 | **Slider** | Volume range control |
-| — | **Segmented** | Day / Week / Month control |
+| — | **Segmented** | Day / Week / Month with **liquid droplet** thumb (magnify, travel stretch, landing squash; drag or tap) |
+| — | **Float card** | Original demo: spring-physics draggable glass card over the photo |
 | — | **Progress & chips** | Progress bar + filter chips |
 | — | **Tooltip** | Hover/focus tip |
 

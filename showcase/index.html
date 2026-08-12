@@ -27,7 +27,7 @@
     <section class="hero">
       <p class="hero-kicker">Component library</p>
       <h1>Liquid Glass Components</h1>
-      <p class="hero-sub">Edge refraction on everyday UI — buttons, menus, inputs, and more.</p>
+      <p class="hero-sub">Edge refraction on everyday UI — drag the floating card, and watch the Day · Week · Month droplet stretch as it slides.</p>
     </section>
 
     <div class="grid">
@@ -184,14 +184,24 @@
         </div>
       </section>
 
-      <!-- Bonus: Segmented control -->
+      <!-- Bonus: Segmented control (liquid droplet thumb) -->
       <section class="panel" id="segmented">
         <h2 class="panel-title">Segmented</h2>
-        <div class="segmented lg-surface" data-glass data-glass-opts='{"scale":-90,"mapBlur":10,"blur":2}' role="group" aria-label="Density">
-          <button type="button" class="segment is-active" data-segment="day" aria-pressed="true">Day</button>
-          <button type="button" class="segment" data-segment="week" aria-pressed="false">Week</button>
-          <button type="button" class="segment" data-segment="month" aria-pressed="false">Month</button>
+        <div class="segmented lg-surface" id="segmented-density" data-glass data-glass-opts='{"scale":-80,"mapBlur":10,"blur":2,"border":0.1}' role="group" aria-label="Range">
+          <div
+            class="seg-thumb lg-surface lg-glare"
+            id="seg-thumb"
+            aria-hidden="true"
+            data-glass-lazy
+            data-glass-opts='{"scale":-130,"mapBlur":11,"blur":2.5,"chroma":7,"border":0.14}'
+          ></div>
+          <div class="seg-options">
+            <button type="button" class="segment is-active" data-segment="day" aria-pressed="true">Day</button>
+            <button type="button" class="segment" data-segment="week" aria-pressed="false">Week</button>
+            <button type="button" class="segment" data-segment="month" aria-pressed="false">Month</button>
+          </div>
         </div>
+        <p class="seg-hint">Tap or drag the glass droplet across Day · Week · Month</p>
       </section>
 
       <!-- Bonus: Progress + chips -->
@@ -267,6 +277,26 @@
 
   <!-- Toast host -->
   <div class="toast-host" id="toast-host" aria-live="polite" aria-relevant="additions"></div>
+
+  <!-- Floating draggable glass card (original demo interaction) -->
+  <div class="float-card lg-surface lg-glare" id="float-card" role="group" aria-label="Early access signup">
+    <div class="float-card-grip" aria-hidden="true"></div>
+    <div class="float-card-head">
+      <h2>Get early access</h2>
+      <span class="badge float-card-badge">Beta</span>
+    </div>
+    <p class="float-card-sub">Drag this card across the photo. Scroll to watch it bend the detail underneath.</p>
+    <form class="float-card-form" onsubmit="return false">
+      <input type="email" name="email" placeholder="you@example.com" aria-label="Email address" autocomplete="email">
+      <button type="submit">Request invite</button>
+    </form>
+    <div class="float-card-divider" aria-hidden="true"></div>
+    <label class="float-card-switch">
+      <span>Send me product updates</span>
+      <input type="checkbox" checked>
+      <span class="float-switch-track" aria-hidden="true"><span class="float-switch-thumb"></span></span>
+    </label>
+  </div>
 
   <script src="../liquid-glass/liquid-glass.js"></script>
   <script src="app.js"></script>

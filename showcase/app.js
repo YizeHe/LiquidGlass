@@ -217,20 +217,397 @@
     sync();
   }
 
-  // ---------- Segmented ----------
-  function initSegmented() {
-    document.querySelectorAll(".segmented").forEach(function (group) {
-      const segs = Array.from(group.querySelectorAll(".segment"));
-      segs.forEach(function (btn) {
+  // ---------- Segmented: liquid droplet thumb ----------
+  /**
+   * Glass droplet that slides between Day / Week / Month.
+   * Motion stretch (longer while traveling) + landing squash (flatter from inertia),
+   * resting slightly enlarged like a magnifying lens — spring physics akin to the float card.
+   */
+  class SegmentDroplet {
+    constructor(root) {
+      this.root = root;
+      this.thumb = root.querySelector(".seg-thumb");
+      this.segments = Array.from(root.querySelectorAll(".segment"));
+      if (!this.thumb || !this.segments.length) return;
+
+      this.pad = 5;
+      this.x = 0;
+      this.y = 0;
+      this.w = 40;
+      this.h = 36;
+      this.tx = 0;
+      this.ty = 0;
+      this.tw = 40;
+      this.th = 36;
+      this.vx = 0;
+      this.vy = 0;
+      this.vw = 0;
+      this.vh = 0;
+      this.stiffness = 0.16;
+      this.damping = 0.7;
+      // resting magnifier scale (enlarged droplet)
+      this.bulge = 1.14;
+      // impact residual: positive = flatter (squashed vertically)
+      this.impact = 0;
+      this.prevSpeed = 0;
+      this.activeIndex = Math.max(
+        0,
+        this.segments.findIndex(function (s) {
+          return s.classList.contains("is-active");
+        })
+      );
+      this.dragging = false;
+      this.ready = false;
+      this._glassReady = false;
+
+      var self = this;
+      this.segments.forEach(function (btn, i) {
         btn.addEventListener("click", function () {
-          segs.forEach(function (s) {
-            const on = s === btn;
+          if (self.dragging) return;
+          self.select(i);
+        });
+      });
+
+      // Drag the track to scrub the droplet (click still handled by segment buttons)
+      root.addEventListener("pointerdown", function (e) {
+        if (e.button != null && e.button !== 0) return;
+        self._downX = e.clientX;
+        self._downY = e.clientY;
+        self._moved = false;
+        self._pressing = true;
+        try {
+          root.setPointerCapture(e.pointerId);
+        } catch (_) {}
+      });
+      root.addEventListener("pointermove", function (e) {
+        if (!self._pressing) return;
+        if (
+          Math.abs(e.clientX - self._downX) > 5 ||
+          Math.abs(e.clientY - self._downY) > 5
+        ) {
+          self._moved = true;
+          self.dragging = true;
+        }
+        if (self.dragging) self.snapToPointer(e.clientX, true);
+      });
+      root.addEventListener("pointerup", function (e) {
+        if (!self._pressing) return;
+        var wasDragging = self.dragging;
+        self._pressing = false;
+        self.dragging = false;
+        if (root.hasPointerCapture && root.hasPointerCapture(e.pointerId)) {
+          root.releasePointerCapture(e.pointerId);
+        }
+        if (wasDragging || self._moved) {
+          // Snap after scrub; skip if pure click (segment handler will select)
+          self.snapToPointer(e.clientX, false);
+        }
+      });
+      root.addEventListener("pointercancel", function () {
+        self._pressing = false;
+        self.dragging = false;
+      });
+
+      window.addEventListener("resize", function () {
+        self.layout(true);
+      });
+
+      // Wait a frame so layout/fonts settle
+      requestAnimationFrame(function () {
+        self.ensureGlass();
+        self.layout(true);
+        self.ready = true;
+        self.tick();
+      });
+    }
+
+    ensureGlass() {
+      if (this._glassReady || !this.thumb) return;
+      applyGlass(this.thumb, parseOpts(this.thumb));
+      bindGlare(this.thumb);
+      this._glassReady = true;
+      refreshWhenReady(this.thumb);
+    }
+
+    layout(instant) {
+      var rootRect = this.root.getBoundingClientRect();
+      var seg = this.segments[this.activeIndex];
+      if (!seg) return;
+      var r = seg.getBoundingClientRect();
+      var left = r.left - rootRect.left;
+      var top = r.top - rootRect.top;
+      this.tx = left;
+      this.ty = top;
+      this.tw = r.width;
+      this.th = r.height;
+      if (instant || !this.ready) {
+        this.x = this.tx;
+        this.y = this.ty;
+        this.w = this.tw;
+        this.h = this.th;
+        this.vx = this.vy = this.vw = this.vh = 0;
+        this.impact = 0;
+        this.render();
+        if (this._glassReady) refreshWhenReady(this.thumb);
+      }
+    }
+
+    select(index) {
+      if (index < 0 || index >= this.segments.length) return;
+      this.activeIndex = index;
+      this.segments.forEach(function (s, i) {
+        var on = i === index;
+        s.classList.toggle("is-active", on);
+        s.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+      this.layout(false);
+    }
+
+    indexFromX(clientX) {
+      var rootRect = this.root.getBoundingClientRect();
+      var rel = clientX - rootRect.left;
+      var best = 0;
+      var bestDist = Infinity;
+      for (var i = 0; i < this.segments.length; i++) {
+        var r = this.segments[i].getBoundingClientRect();
+        var cx = r.left - rootRect.left + r.width / 2;
+        var d = Math.abs(rel - cx);
+        if (d < bestDist) {
+          bestDist = d;
+          best = i;
+        }
+      }
+      return best;
+    }
+
+    snapToPointer(clientX, freeDrag) {
+      var i = this.indexFromX(clientX);
+      if (freeDrag) {
+        // While dragging, follow the pointer more loosely within track
+        var rootRect = this.root.getBoundingClientRect();
+        var seg = this.segments[i];
+        var r = seg.getBoundingClientRect();
+        var left = r.left - rootRect.left;
+        var top = r.top - rootRect.top;
+        // blend toward nearest segment under finger
+        this.tx = left;
+        this.ty = top;
+        this.tw = r.width;
+        this.th = r.height;
+        if (i !== this.activeIndex) {
+          this.activeIndex = i;
+          this.segments.forEach(function (s, idx) {
+            var on = idx === i;
             s.classList.toggle("is-active", on);
             s.setAttribute("aria-pressed", on ? "true" : "false");
           });
-        });
+        }
+      } else {
+        this.select(i);
+      }
+    }
+
+    tick() {
+      if (!this.thumb) return;
+
+      var k = this.stiffness;
+      var d = this.damping;
+      this.vx = (this.vx + (this.tx - this.x) * k) * d;
+      this.vy = (this.vy + (this.ty - this.y) * k) * d;
+      this.vw = (this.vw + (this.tw - this.w) * k) * d;
+      this.vh = (this.vh + (this.th - this.h) * k) * d;
+      this.x += this.vx;
+      this.y += this.vy;
+      this.w += this.vw;
+      this.h += this.vh;
+
+      var speed = Math.hypot(this.vx, this.vy) + Math.abs(this.vw) * 0.35;
+      // Landing impact: was moving, now nearly settled → flatten briefly
+      if (this.prevSpeed > 1.8 && speed < 0.55 && !this.dragging) {
+        this.impact = Math.min(0.16, 0.05 + this.prevSpeed * 0.035);
+      }
+      this.impact *= 0.88;
+      if (this.impact < 0.001) this.impact = 0;
+      this.prevSpeed = speed;
+
+      this.render(speed);
+      requestAnimationFrame(this.tick.bind(this));
+    }
+
+    render(speed) {
+      if (speed == null) {
+        speed = Math.hypot(this.vx, this.vy);
+      }
+      // Travel: stretch longer along motion (sides compressed)
+      var travel = Math.min(speed / 9, 0.18);
+      // Landing: flatten (shorter, a bit taller feel via scaleY dip from impact)
+      var flat = this.impact;
+      var scaleX = this.bulge * (1 + travel - flat * 0.85);
+      var scaleY = this.bulge * (1 - travel * 0.55 - flat * 0.35);
+      // Keep a readable minimum
+      scaleX = Math.max(0.88, scaleX);
+      scaleY = Math.max(0.82, scaleY);
+
+      var cx = this.x + this.w / 2;
+      var cy = this.y + this.h / 2;
+      // Position via left/top/size, squash via transform around center
+      this.thumb.style.left = this.x + "px";
+      this.thumb.style.top = this.y + "px";
+      this.thumb.style.width = Math.max(1, this.w) + "px";
+      this.thumb.style.height = Math.max(1, this.h) + "px";
+      this.thumb.style.transform =
+        "translate(0,0) scale(" + scaleX + ", " + scaleY + ")";
+      this.thumb.style.transformOrigin = "50% 50%";
+
+      // Soft glare follows motion direction
+      var gx = 50 + Math.max(-28, Math.min(28, this.vx * 6));
+      var gy = 30 + Math.max(-18, Math.min(18, this.vy * 4));
+      this.thumb.style.setProperty("--gx", gx.toFixed(1) + "%");
+      this.thumb.style.setProperty("--gy", gy.toFixed(1) + "%");
+    }
+  }
+
+  function initSegmented() {
+    var root = document.getElementById("segmented-density");
+    if (!root) return;
+    window.segmentDroplet = new SegmentDroplet(root);
+  }
+
+  // ---------- Floating draggable card (original demo physics) ----------
+  class GlassCard {
+    constructor(el) {
+      this.el = el;
+      this.measure();
+      var startCenterX =
+        window.innerWidth > 960
+          ? window.innerWidth * 0.78
+          : window.innerWidth > 700
+            ? window.innerWidth * 0.72
+            : window.innerWidth / 2;
+      this.x = startCenterX - this.w / 2;
+      this.y = Math.max(72, window.innerHeight * 0.28 - this.h / 2);
+      this.tx = this.x;
+      this.ty = this.y;
+      this.vx = 0;
+      this.vy = 0;
+      this.dragging = false;
+      this.grabDX = 0;
+      this.grabDY = 0;
+      this.stiffness = 0.12;
+      this.damping = 0.72;
+
+      var self = this;
+      el.addEventListener("pointerdown", function (e) {
+        self.onDown(e);
       });
-    });
+      el.addEventListener("pointermove", function (e) {
+        self.onMove(e);
+      });
+      el.addEventListener("pointerup", function (e) {
+        self.onUp(e);
+      });
+      el.addEventListener("pointercancel", function (e) {
+        self.onUp(e);
+      });
+      window.addEventListener("resize", function () {
+        self.onResize();
+      });
+
+      this.clampTarget();
+      this.x = this.tx;
+      this.y = this.ty;
+      this.render();
+      requestAnimationFrame(function () {
+        self.tick();
+      });
+    }
+
+    measure() {
+      this.w = this.el.offsetWidth;
+      this.h = this.el.offsetHeight;
+    }
+
+    onDown(e) {
+      if (e.target.closest("input, button, a, label")) return;
+      this.dragging = true;
+      this.grabDX = e.clientX - this.tx;
+      this.grabDY = e.clientY - this.ty;
+      try {
+        this.el.setPointerCapture(e.pointerId);
+      } catch (_) {}
+    }
+
+    onMove(e) {
+      var rect = this.el.getBoundingClientRect();
+      var gx = ((e.clientX - rect.left) / rect.width) * 100;
+      var gy = ((e.clientY - rect.top) / rect.height) * 100;
+      this.el.style.setProperty("--gx", gx.toFixed(1) + "%");
+      this.el.style.setProperty("--gy", gy.toFixed(1) + "%");
+      if (!this.dragging) return;
+      this.tx = e.clientX - this.grabDX;
+      this.ty = e.clientY - this.grabDY;
+      this.clampTarget();
+    }
+
+    onUp(e) {
+      this.dragging = false;
+      if (this.el.hasPointerCapture && this.el.hasPointerCapture(e.pointerId)) {
+        this.el.releasePointerCapture(e.pointerId);
+      }
+    }
+
+    onResize() {
+      this.measure();
+      this.clampTarget();
+    }
+
+    clampTarget() {
+      var m = 12;
+      var topMin = 72;
+      this.tx = Math.min(Math.max(this.tx, m), window.innerWidth - this.w - m);
+      this.ty = Math.min(
+        Math.max(this.ty, topMin),
+        window.innerHeight - this.h - m
+      );
+    }
+
+    tick() {
+      this.vx = (this.vx + (this.tx - this.x) * this.stiffness) * this.damping;
+      this.vy = (this.vy + (this.ty - this.y) * this.stiffness) * this.damping;
+      this.x += this.vx;
+      this.y += this.vy;
+      this.render();
+      requestAnimationFrame(this.tick.bind(this));
+    }
+
+    render() {
+      var speed = Math.hypot(this.vx, this.vy);
+      var squash = Math.min(speed / 120, 0.08);
+      var angle = Math.atan2(this.vy, this.vx);
+      this.el.style.transform =
+        "translate(" +
+        this.x +
+        "px, " +
+        this.y +
+        "px) " +
+        "rotate(" +
+        angle +
+        "rad) scale(" +
+        (1 + squash) +
+        ", " +
+        (1 - squash) +
+        ") rotate(" +
+        -angle +
+        "rad)";
+    }
+  }
+
+  function initFloatCard() {
+    var el = document.getElementById("float-card");
+    if (!el) return;
+    applyGlass(el, { scale: -112, chroma: 6, mapBlur: 12, blur: 3, border: 0.07 });
+    bindGlare(el);
+    window.glassCard = new GlassCard(el);
   }
 
   // ---------- Chips ----------
@@ -408,6 +785,7 @@
     initSearch();
     initSlider();
     initSegmented();
+    initFloatCard();
     initChips();
     initProgress();
     initModal();
