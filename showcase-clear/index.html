@@ -6,10 +6,24 @@
   <title>Liquid Glass — Clear Center</title>
   <link rel="stylesheet" href="styles.css">
 </head>
-<body class="mode-clear" data-glass-mode="clear">
-  <img class="bg-photo" src="../liquid-glass/demo/meadow-tall.jpg" alt="" decoding="async">
-  <div class="bg-fallback" aria-hidden="true"></div>
-  <div class="bg-scrim" aria-hidden="true"></div>
+<body class="mode-clear bg-scene-photo" data-glass-mode="clear" data-bg-scene="photo">
+  <!-- Background layers -->
+  <div class="bg-stage" aria-hidden="true">
+    <img class="bg-photo" src="../liquid-glass/demo/meadow-tall.jpg" alt="" decoding="async">
+    <div class="bg-solid"></div>
+    <!-- Pink under blue; both large & overlapping at center -->
+    <div class="orb orb-pink">
+      <span class="orb-core"></span>
+      <span class="orb-spec"></span>
+      <span class="orb-rim"></span>
+    </div>
+    <div class="orb orb-blue">
+      <span class="orb-core"></span>
+      <span class="orb-spec"></span>
+      <span class="orb-rim"></span>
+    </div>
+    <div class="bg-scrim"></div>
+  </div>
 
   <!-- 7. Navbar -->
   <header class="navbar lg-surface lg-glare" id="navbar" role="navigation" aria-label="Main">
@@ -23,24 +37,41 @@
     <button type="button" class="nav-cta" id="nav-open-modal">Open panel</button>
   </header>
 
-  <!-- Mode switch: clear (crystal middle) vs frosted (blur interior) -->
-  <div class="mode-dock" role="group" aria-label="Glass material">
-    <button type="button" class="mode-option is-active" data-mode-option="clear" aria-pressed="true">
-      <span class="mode-option-title">澄澈</span>
-      <span class="mode-option-sub">Clear</span>
-    </button>
-    <button type="button" class="mode-option" data-mode-option="frosted" aria-pressed="false">
-      <span class="mode-option-title">虚化</span>
-      <span class="mode-option-sub">Frosted</span>
-    </button>
+  <!-- Controls: glass material + background scene -->
+  <div class="control-stack">
+    <div class="mode-dock" role="group" aria-label="Glass material">
+      <button type="button" class="mode-option is-active" data-mode-option="clear" aria-pressed="true">
+        <span class="mode-option-title">澄澈</span>
+        <span class="mode-option-sub">Clear</span>
+      </button>
+      <button type="button" class="mode-option" data-mode-option="frosted" aria-pressed="false">
+        <span class="mode-option-title">虚化</span>
+        <span class="mode-option-sub">Frosted</span>
+      </button>
+    </div>
+    <div class="mode-dock bg-dock" role="group" aria-label="Background">
+      <button type="button" class="mode-option is-active" data-bg-option="photo" aria-pressed="true">
+        <span class="mode-option-title">图片</span>
+        <span class="mode-option-sub">Photo</span>
+      </button>
+      <button type="button" class="mode-option" data-bg-option="light" aria-pressed="false">
+        <span class="mode-option-title">浅色</span>
+        <span class="mode-option-sub">Light</span>
+      </button>
+      <button type="button" class="mode-option" data-bg-option="dark" aria-pressed="false">
+        <span class="mode-option-title">深色</span>
+        <span class="mode-option-sub">Dark</span>
+      </button>
+    </div>
   </div>
 
   <main class="page">
     <section class="hero">
       <p class="hero-kicker">Clear-center showcase</p>
       <h1>Liquid Glass Components</h1>
-      <p class="hero-sub">Edge refraction stays; the middle can be crystal-clear so the photo shows through. Switch 澄澈 / 虚化 anytime.</p>
+      <p class="hero-sub">Edge refraction with a crystal middle. Switch 澄澈 / 虚化, and pick photo, light+orbs, or dark+orbs as the backdrop.</p>
       <p class="mode-status" id="mode-label">澄澈 Clear — edge warp, crystal middle</p>
+      <p class="mode-status mode-status-bg" id="bg-label">背景 Photo</p>
     </section>
 
     <div class="grid">

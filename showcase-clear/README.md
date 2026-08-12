@@ -29,7 +29,14 @@ Open:
 http://localhost:8080/showcase-clear/
 ```
 
-Use the **澄澈 / 虚化** dock (top-right, or bottom on mobile) to switch every glass surface live. Preference is stored in `localStorage`.
+Use the docks (top-right, or bottom on mobile):
+
+| Dock | Options |
+|------|---------|
+| Glass | **澄澈 Clear** / **虚化 Frosted** |
+| Background | **图片 Photo** / **浅色 Light + orbs** / **深色 Dark + orbs** |
+
+On light/dark scenes, two large overlapping 3D orbs fill the frame: **pink under, blue on top** (top-left blue overlaps bottom-right pink). Preferences persist in `localStorage`.
 
 ## Components
 
@@ -39,6 +46,8 @@ Same set as the main showcase: buttons, icon buttons, dropdown, card, inputs, se
 
 ```js
 showcaseGlass.setGlassMode("clear");   // or "frosted"
+showcaseGlass.setBgScene("light");     // "photo" | "light" | "dark"
 showcaseGlass.getMode();
+showcaseGlass.getBgScene();
 showcaseGlass.remountAllGlass();
 ```

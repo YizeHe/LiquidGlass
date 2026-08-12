@@ -19,7 +19,9 @@
   const glareBound = new WeakSet();
 
   var STORAGE_KEY = "lg-showcase-clear-mode";
+  var BG_STORAGE_KEY = "lg-showcase-clear-bg";
   var glassMode = "clear";
+  var bgScene = "photo"; // photo | light | dark
 
   /**
    * Optical presets. Element data-glass-opts may set scale / radius / chroma;
@@ -231,6 +233,49 @@
     document.querySelectorAll("[data-mode-option]").forEach(function (btn) {
       btn.addEventListener("click", function () {
         setGlassMode(btn.getAttribute("data-mode-option"));
+      });
+    });
+  }
+
+  // ---------- Background scene: photo / light+orbs / dark+orbs ----------
+  var BG_LABELS = {
+    photo: "背景 Photo — meadow image",
+    light: "背景 Light — large blue over pink orbs",
+    dark: "背景 Dark — large blue over pink orbs",
+  };
+
+  function applyBgToDocument() {
+    document.body.dataset.bgScene = bgScene;
+    document.body.classList.remove("bg-scene-photo", "bg-scene-light", "bg-scene-dark");
+    document.body.classList.add("bg-scene-" + bgScene);
+    document.querySelectorAll("[data-bg-option]").forEach(function (btn) {
+      var on = btn.getAttribute("data-bg-option") === bgScene;
+      btn.classList.toggle("is-active", on);
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    var label = document.getElementById("bg-label");
+    if (label) label.textContent = BG_LABELS[bgScene] || bgScene;
+  }
+
+  function setBgScene(scene) {
+    if (scene !== "photo" && scene !== "light" && scene !== "dark") return;
+    if (scene === bgScene) return;
+    bgScene = scene;
+    try {
+      localStorage.setItem(BG_STORAGE_KEY, scene);
+    } catch (_) {}
+    applyBgToDocument();
+  }
+
+  function initBgToggle() {
+    try {
+      var saved = localStorage.getItem(BG_STORAGE_KEY);
+      if (saved === "photo" || saved === "light" || saved === "dark") bgScene = saved;
+    } catch (_) {}
+    applyBgToDocument();
+    document.querySelectorAll("[data-bg-option]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        setBgScene(btn.getAttribute("data-bg-option"));
       });
     });
   }
@@ -990,7 +1035,7 @@
 
   // ---------- Background image fallback ----
   function initBg() {
-    const img = document.querySelector(".bg-photo");
+    var img = document.querySelector(".bg-photo");
     if (!img) return;
     img.addEventListener("error", function () {
       img.style.display = "none";
@@ -1001,6 +1046,7 @@
   function init() {
     initBg();
     initModeToggle();
+    initBgToggle();
     mountAllGlass();
     initDropdown();
     initTabs();
@@ -1027,8 +1073,12 @@
     getGlass: getGlass,
     showToast: showToast,
     setGlassMode: setGlassMode,
+    setBgScene: setBgScene,
     getMode: function () {
       return glassMode;
+    },
+    getBgScene: function () {
+      return bgScene;
     },
     remountAllGlass: remountAllGlass,
   };
